@@ -1,20 +1,24 @@
-package main
+package blockchain
+
+import (
+  "github.com/raphaelrrcoelho/caboco-coin/block"
+)
 
 type Blockchain struct {
-  blocks []*Block
+  Blocks []*block.Block
 }
 
 func (bc *Blockchain) AddBlock(data string) {
-  prevBlock := bc.blocks[len(bc.blocks) - 1]
-  newBlock := NewBlock(data, prevBlock.Hash)
+  prevBlock := bc.Blocks[len(bc.Blocks) - 1]
+  newBlock := block.NewBlock(data, prevBlock.Hash)
 
-  bc.blocks = append(bc.blocks, newBlock)
+  bc.Blocks = append(bc.Blocks, newBlock)
 }
 
-func NewGenesisBlock() *Block {
-  return NewBlock("Bloco Primeiro", []byte{})
+func NewGenesisBlock() *block.Block {
+  return block.NewBlock("Bloco Primeiro", []byte{})
 }
 
 func NewBlockchain() *Blockchain {
-  return &Blockchain{[]*Block{NewGenesisBlock()}}
+  return &Blockchain{[]*block.Block{NewGenesisBlock()}}
 }

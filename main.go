@@ -2,20 +2,19 @@ package main
 
 import (
   "fmt"
-  "block"
-  "blockchain"
+  "github.com/raphaelrrcoelho/caboco-coin/blockchain"
 )
 
 func main() {
-  bc := NewBlockchain()
+  bc := blockchain.NewBlockchain()
 
   bc.AddBlock("Manda 1 CBC pro Caboco")
   bc.AddBlock("Manda mais 2 CBC pro Caboco")
 
-  for _, block := range bc.blocks {
-    fmt.Println("Previous Hash: %x\n", block.PrevBlockHash)
-    fmt.Println("Data: %s\n", block.Data)
-    fmt.Println("Hash: %x\n", block.Hash)
+  for _, block := range bc.Blocks {
+    fmt.Printf("Previous Hash: %x\n", block.PrevBlockHash)
+    fmt.Printf("Data: %s\n", block.Data)
+    fmt.Printf("Hash: %x\n", block.Hash)
     fmt.Println()
   }
 }
