@@ -4,6 +4,7 @@ import (
   "fmt"
   "strconv"
   "github.com/raphaelrrcoelho/caboco-coin/blockchain"
+  "github.com/raphaelrrcoelho/caboco-coin/proofofwork"
 )
 
 func main() {
