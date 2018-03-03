@@ -9,10 +9,10 @@ import (
   "github.com/raphaelrrcoelho/caboco-coin/utils"
 )
 
-const targetBits = 24
+const targetBits = int64(24)
 
 var (
-  maxNonce = math.MaxInt64
+  maxNonce = int64(math.MaxInt64)
 )
 
 type ProofOfWork struct {
@@ -20,16 +20,17 @@ type ProofOfWork struct {
   blockData []byte
   prevBlockHash []byte
   target *big.Int
+  nonce int64
 }
 
-func (pow *ProofOfWork) prepareData(nonce int) []byte {
+func (pow *ProofOfWork) prepareData() []byte {
   data := bytes.Join(
     [][]byte{
       pow.prevBlockHash,
       pow.blockData,
-      utils.IntToHex(int64(pow.blockTimestamp)),
-      utils.IntToHex(int64(targetBits)),
-      utils.IntToHex(int64(nonce)),
+      utils.IntToHex(pow.blockTimestamp),
+      utils.IntToHex(targetBits),
+      utils.IntToHex(pow.nonce),
     },
     []byte{},
   )
@@ -37,18 +38,17 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
   return data
 }
 
-func (pow *ProofOfWork) Run() (int, []byte) {
+func (pow *ProofOfWork) Run() (int64, []byte) {
   var hashInt big.Int
   var hash [32]byte
-  nonce := 0
 
   fmt.Printf(
     "Minerando o block contendo \"%s\"\n",
     pow.blockData,
   )
 
-  for nonce < maxNonce {
-    data := pow.prepareData(nonce)
+  for pow.nonce < maxNonce {
+    data := pow.prepareData()
 
     hash = sha256.Sum256(data)
     fmt.Printf("\r%x", hash)
@@ -59,18 +59,19 @@ func (pow *ProofOfWork) Run() (int, []byte) {
     if hashInt.Cmp(pow.target) == -1 {
       break
     } else {
-      nonce++
+      pow.nonce++
     }
   }
 
   fmt.Printf("\n\n")
-  return nonce, hash[:]
+  return pow.nonce, hash[:]
 }
 
 func NewProofOfWork(
   timestamp int64,
   data []byte,
   prevBlockHash []byte,
+  nonce int64,
   ) *ProofOfWork {
   // above  0fac49161af82ed938add1d8725835cc123a1a87b1b196488360e58d4bfb51e3
   // target 0000010000000000000000000000000000000000000000000000000000000000
@@ -78,6 +79,6 @@ func NewProofOfWork(
   target := big.NewInt(1)
   target.Lsh(target, uint(256 - targetBits)) // left shift by 256 - target
 
-  pow := &ProofOfWork{timestamp, data, prevBlockHash, target}
+  pow := &ProofOfWork{timestamp, data, prevBlockHash, target, nonce}
   return pow
 }

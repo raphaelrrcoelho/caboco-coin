@@ -10,7 +10,7 @@ type Block struct {
 	Data          []byte
 	PrevBlockHash []byte
 	Hash          []byte
-	Nonce int
+	Nonce int64
 }
 
 // NewBlock creates and returns Block
@@ -20,12 +20,14 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 		Data: []byte(data),
 		PrevBlockHash: prevBlockHash,
 		Hash: []byte{},
+		Nonce: int64(0),
 	}
 
 	pow := proofofwork.NewProofOfWork(
 		block.Timestamp,
 		block.Data,
 		block.PrevBlockHash,
+		block.Nonce,
 	)
 
 	nonce, hash := pow.Run()
