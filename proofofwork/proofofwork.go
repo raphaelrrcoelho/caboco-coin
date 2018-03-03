@@ -67,6 +67,18 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
   return pow.nonce, hash[:]
 }
 
+func (pow *ProofOfWork) Validate() bool {
+  var hashInt big.Int
+
+  data := pow.prepareData()
+  hash := sha256.Sum256(data)
+  hashInt.SetBytes(hash[:])
+
+  // if hashInt is smaller than the target
+  isValid := hashInt.Cmp(pow.target) == -1
+  return isValid
+}
+
 func NewProofOfWork(
   timestamp int64,
   data []byte,
