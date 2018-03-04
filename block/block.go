@@ -33,20 +33,25 @@ func (b *Block) Serialize() []byte {
 
 // DeserializeBlock deserializes a block
 func DeserializeBlock(d []byte) *Block {
-	var block Block
+	var b Block
 	decoder := gob.NewDecoder(bytes.NewReader(d))
 
-	err := decoder.Decode(&block)
+	err := decoder.Decode(&b)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	return &block
+	return &b
+}
+
+// NewGenesisBlock creates the genesis Block
+func NewGenesisBlock() *Block {
+	return NewBlock("Bloco Primeiro", []byte{})
 }
 
 // NewBlock creates and returns Block
 func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{
+	b := &Block{
 		Timestamp:     time.Now().Unix(),
 		Data:          []byte(data),
 		PrevBlockHash: prevBlockHash,
@@ -55,15 +60,15 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 	}
 
 	pow := proofofwork.NewProofOfWork(
-		block.Timestamp,
-		block.Data,
-		block.PrevBlockHash,
-		block.Nonce,
+		b.Timestamp,
+		b.Data,
+		b.PrevBlockHash,
+		b.Nonce,
 	)
 
 	nonce, hash := pow.Run()
-	block.Hash = hash[:]
-	block.Nonce = nonce
+	b.Hash = hash[:]
+	b.Nonce = nonce
 
-	return block
+	return b
 }
