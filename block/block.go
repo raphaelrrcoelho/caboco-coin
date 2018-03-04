@@ -1,6 +1,9 @@
 package block
 
 import (
+	"bytes"
+	"encoding/gob"
+	"log"
 	"time"
 	"github.com/raphaelrrcoelho/caboco-coin/proofofwork"
 )
@@ -11,6 +14,30 @@ type Block struct {
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce int64
+}
+
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return result.Bytes()
+}
+
+func Deserialize(d []byte) *Block {
+	var block Block
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+
+	err := decoder.Decode(&block)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return &block
 }
 
 // NewBlock creates and returns Block
