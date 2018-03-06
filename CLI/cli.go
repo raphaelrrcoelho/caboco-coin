@@ -16,9 +16,10 @@ type CLI struct {
 }
 
 func (cli *CLI) printUsage() {
-	fmt.Println("Usage:")
-	fmt.Println("  addblock -data BLOCK_DATA - add a block to the blockchain")
-	fmt.Println("  printchain - print all the blocks of the blockchain")
+	fmt.Println("Utilização:")
+	fmt.Println("  adicionabloco -dados DADOS - adiciona um bloco na blockchain")
+	fmt.Println("  imprimechain - imprime todos os blocos da blockchain")
+	fmt.Println()
 }
 
 func (cli *CLI) validateArgs() {
@@ -37,12 +38,12 @@ func (cli *CLI) Run() {
 	addBlockData := addBlockCmd.String("data", "", "Block data")
 
 	switch os.Args[1] {
-	case "addblock":
+	case "adicionabloco":
 		err := addBlockCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
-	case "printchain":
+	case "imprimechain":
 		err := printChainCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
