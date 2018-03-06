@@ -14,7 +14,7 @@ const blocksBucket = "blocks"
 // Blockchain keeps a sequence of Blocks
 type Blockchain struct {
 	tip []byte
-	db  *bolt.DB
+	DB  *bolt.DB
 }
 
 // Iterator iterates thru the Blocks on the Blockchain
@@ -25,7 +25,7 @@ type Iterator struct {
 
 // NewIterator creates a new Blockchain Iterator
 func (bc *Blockchain) NewIterator() *Iterator {
-	return &Iterator{bc.tip, bc.db}
+	return &Iterator{bc.tip, bc.DB}
 }
 
 // Next returns next block starting from the tip
@@ -52,7 +52,7 @@ func (i *Iterator) Next() *block.Block {
 func (bc *Blockchain) AddBlock(data string) {
 	var lastHash []byte
 
-	err := bc.db.View(func(tx *bolt.Tx) error {
+	err := bc.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
 		lastHash = bucket.Get([]byte("l"))
 
@@ -64,7 +64,7 @@ func (bc *Blockchain) AddBlock(data string) {
 
 	newBlock := block.NewBlock(data, lastHash)
 
-	err = bc.db.Update(func(tx *bolt.Tx) error {
+	err = bc.DB.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blocksBucket))
 		err = bucket.Put(newBlock.Hash, newBlock.Serialize())
 		if err != nil {
