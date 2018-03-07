@@ -1,4 +1,4 @@
-package CLI
+package main
 
 import (
 	"flag"
@@ -6,13 +6,10 @@ import (
 	"log"
 	"os"
 	"strconv"
-
-	"github.com/raphaelrrcoelho/caboco-coin/blockchain"
-	"github.com/raphaelrrcoelho/caboco-coin/proofofwork"
 )
 
 type CLI struct {
-	BC *blockchain.Blockchain
+	BC *Blockchain
 }
 
 func (cli *CLI) printUsage() {
@@ -66,8 +63,8 @@ func (cli *CLI) Run() {
 	}
 }
 
-func (cli *CLI) addBlock(data string) {
-	cli.BC.AddBlock(data)
+func (cli *CLI) addBlock(transactions []*Transaction) {
+	cli.BC.AddBlock(transactions)
 	fmt.Println("Bloco adicionado com sucesso.")
 }
 
@@ -77,11 +74,11 @@ func (cli *CLI) printChain() {
 	for bci.CurrentHash != nil {
 		block := bci.Next()
 		fmt.Printf("Hash Anterior: %x\n", block.PrevBlockHash)
-		fmt.Printf("Dados: %s\n", block.Data)
+		fmt.Printf("Transações: %s\n", block.Transactions)
 		fmt.Printf("Hash: %x\n", block.Hash)
-		pow := proofofwork.NewProofOfWork(
+		pow := NewProofOfWork(
 			block.Timestamp,
-			block.Data,
+			block.Transactions,
 			block.PrevBlockHash,
 			block.Nonce,
 		)

@@ -1,4 +1,4 @@
-package proofofwork
+package main
 
 import (
 	"bytes"
@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-
-	tx "github.com/raphaelrrcoelho/caboco-coin/transaction"
-	"github.com/raphaelrrcoelho/caboco-coin/utils"
 )
 
 const targetBits = int64(24)
@@ -20,7 +17,7 @@ var (
 // ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
 	blockTimestamp    int64
-	blockTransactions []*tx.Transaction
+	blockTransactions []*Transaction
 	prevBlockHash     []byte
 	target            *big.Int
 	nonce             int64
@@ -31,9 +28,9 @@ func (pow *ProofOfWork) prepareData() []byte {
 		[][]byte{
 			pow.prevBlockHash,
 			[]byte{},
-			utils.IntToHex(pow.blockTimestamp),
-			utils.IntToHex(targetBits),
-			utils.IntToHex(pow.nonce),
+			IntToHex(pow.blockTimestamp),
+			IntToHex(targetBits),
+			IntToHex(pow.nonce),
 		},
 		[]byte{},
 	)
@@ -87,7 +84,7 @@ func (pow *ProofOfWork) Validate() bool {
 // NewProofOfWork builds and returns a ProofOfWork
 func NewProofOfWork(
 	timestamp int64,
-	transactions []*tx.Transaction,
+	transactions []*Transaction,
 	prevBlockHash []byte,
 	nonce int64,
 ) *ProofOfWork {

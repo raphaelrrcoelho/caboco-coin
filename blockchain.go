@@ -1,17 +1,15 @@
-package blockchain
+package main
 
 import (
 	"fmt"
 	"log"
 
 	bolt "github.com/coreos/bbolt"
-	blk "github.com/raphaelrrcoelho/caboco-coin/block"
-	tx "github.com/raphaelrrcoelho/caboco-coin/transaction"
 )
 
 const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
-const genesisCoinBaseData = "Papa-Chibé: O nascido no Pará"
+const genesisCoinbaseData = "Papa-Chibé: O nascido no Pará"
 
 // Blockchain keeps a sequence of Blocks
 type Blockchain struct {
@@ -31,13 +29,13 @@ func (bc *Blockchain) NewIterator() *Iterator {
 }
 
 // Next returns next block starting from the tip
-func (i *Iterator) Next() *block.Block {
-	var b *blk.Block
+func (i *Iterator) Next() *Block {
+	var block *Block
 
-	err := i.db.View(func(dbtx *bolt.Tx) error {
-		bucket := dbtx.Bucket([]byte(blocksBucket))
+	err := i.db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blocksBucket))
 		encodedBlock := bucket.Get(i.CurrentHash)
-		b = block.DeserializeBlock(encodedBlock)
+		block = DeserializeBlock(encodedBlock)
 
 		return nil
 	})
@@ -45,17 +43,17 @@ func (i *Iterator) Next() *block.Block {
 		log.Panic(err)
 	}
 
-	i.CurrentHash = b.PrevBlockHash
+	i.CurrentHash = block.PrevBlockHash
 
-	return b
+	return block
 }
 
 // AddBlock saves provided data as a block in the blockchain
-func (bc *Blockchain) AddBlock(data string) {
+func (bc *Blockchain) AddBlock(transactions []*Transaction) {
 	var lastHash []byte
 
-	err := bc.DB.View(func(dbtx *bolt.Tx) error {
-		bucket := dbtx.Bucket([]byte(blocksBucket))
+	err := bc.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blocksBucket))
 		lastHash = bucket.Get([]byte("l"))
 
 		return nil
@@ -64,10 +62,10 @@ func (bc *Blockchain) AddBlock(data string) {
 		log.Panic(err)
 	}
 
-	newBlock := blk.NewBlock(data, lastHash)
+	newBlock := NewBlock(transactions, lastHash)
 
-	err = bc.DB.Update(func(dbtx *bolt.Tx) error {
-		bucket := dbtx.Bucket([]byte(blocksBucket))
+	err = bc.DB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blocksBucket))
 		err = bucket.Put(newBlock.Hash, newBlock.Serialize())
 		if err != nil {
 			log.Panic(err)
@@ -92,15 +90,15 @@ func NewBlockchain(address string) *Blockchain {
 		log.Panic(err)
 	}
 
-	err = db.Update(func(dbtx *bolt.Tx) error {
-		bucket := dbtx.Bucket([]byte(blocksBucket))
+	err = db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blocksBucket))
 
 		if bucket == nil {
 			fmt.Println("Nenhuma blockchain encontrada. Criando uma nova.")
-			cbtx := tx.NewCoinbaseTX(address, genesisCoinbaseData)
-			genesis := blk.NewGenesisBlock(cbtx)
+			cbtx := NewCoinbaseTX(address, genesisCoinbaseData)
+			genesis := NewGenesisBlock(cbtx)
 
-			bucket, err = dbtx.CreateBucket([]byte(blocksBucket))
+			bucket, err = tx.CreateBucket([]byte(blocksBucket))
 			if err != nil {
 				log.Panic(err)
 			}
