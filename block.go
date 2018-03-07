@@ -49,7 +49,7 @@ func NewGenesisBlock(coinbase *Transaction) *Block {
 
 // NewBlock creates and returns Block
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	b := &Block{
+	block := &Block{
 		Timestamp:     time.Now().Unix(),
 		Transactions:  transactions,
 		PrevBlockHash: prevBlockHash,
@@ -57,16 +57,11 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 		Nonce:         int64(0),
 	}
 
-	pow := NewProofOfWork(
-		b.Timestamp,
-		b.Transactions,
-		b.PrevBlockHash,
-		b.Nonce,
-	)
+	pow := NewProofOfWork(block)
 
 	nonce, hash := pow.Run()
-	b.Hash = hash[:]
-	b.Nonce = nonce
+	block.Hash = hash[:]
+	block.Nonce = nonce
 
-	return b
+	return block
 }

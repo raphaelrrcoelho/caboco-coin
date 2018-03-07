@@ -76,12 +76,8 @@ func (cli *CLI) printChain() {
 		fmt.Printf("Hash Anterior: %x\n", block.PrevBlockHash)
 		fmt.Printf("Transações: %s\n", block.Transactions)
 		fmt.Printf("Hash: %x\n", block.Hash)
-		pow := NewProofOfWork(
-			block.Timestamp,
-			block.Transactions,
-			block.PrevBlockHash,
-			block.Nonce,
-		)
+
+		pow := NewProofOfWork(block)
 		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 	}
