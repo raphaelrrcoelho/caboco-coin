@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/big"
 
+	tx "github.com/raphaelrrcoelho/caboco-coin/transaction"
 	"github.com/raphaelrrcoelho/caboco-coin/utils"
 )
 
@@ -18,18 +19,18 @@ var (
 
 // ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
-	blockTimestamp int64
-	blockData      []byte
-	prevBlockHash  []byte
-	target         *big.Int
-	nonce          int64
+	blockTimestamp    int64
+	blockTransactions []*tx.Transaction
+	prevBlockHash     []byte
+	target            *big.Int
+	nonce             int64
 }
 
 func (pow *ProofOfWork) prepareData() []byte {
 	data := bytes.Join(
 		[][]byte{
 			pow.prevBlockHash,
-			pow.blockData,
+			[]byte{},
 			utils.IntToHex(pow.blockTimestamp),
 			utils.IntToHex(targetBits),
 			utils.IntToHex(pow.nonce),
@@ -47,7 +48,7 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 
 	fmt.Printf(
 		"Minerando o block contendo \"%s\"\n",
-		pow.blockData,
+		[]byte{},
 	)
 
 	for pow.nonce < maxNonce {
@@ -86,7 +87,7 @@ func (pow *ProofOfWork) Validate() bool {
 // NewProofOfWork builds and returns a ProofOfWork
 func NewProofOfWork(
 	timestamp int64,
-	data []byte,
+	transactions []*tx.Transaction,
 	prevBlockHash []byte,
 	nonce int64,
 ) *ProofOfWork {
@@ -96,6 +97,6 @@ func NewProofOfWork(
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits)) // left shift by 256 - target
 
-	pow := &ProofOfWork{timestamp, data, prevBlockHash, target, nonce}
+	pow := &ProofOfWork{timestamp, transactions, prevBlockHash, target, nonce}
 	return pow
 }

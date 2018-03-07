@@ -6,13 +6,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/raphaelrrcoelho/caboco-coin/proofofwork"
+	pow "github.com/raphaelrrcoelho/caboco-coin/proofofwork"
+	tx "github.com/raphaelrrcoelho/caboco-coin/transaction"
 )
 
 // Block keeps block headers
 type Block struct {
 	Timestamp     int64
-	Data          []byte
+	Transactions  []*tx.Transaction
 	PrevBlockHash []byte
 	Hash          []byte
 	Nonce         int64
@@ -45,28 +46,28 @@ func DeserializeBlock(d []byte) *Block {
 }
 
 // NewGenesisBlock creates the genesis Block
-func NewGenesisBlock() *Block {
-	return NewBlock("Bloco Primeiro", []byte{})
+func NewGenesisBlock(coinbase *tx.Transaction) *Block {
+	return NewBlock([]*tx.Transaction{coinbase}, []byte{})
 }
 
 // NewBlock creates and returns Block
-func NewBlock(data string, prevBlockHash []byte) *Block {
+func NewBlock(transactions []*tx.Transaction, prevBlockHash []byte) *Block {
 	b := &Block{
 		Timestamp:     time.Now().Unix(),
-		Data:          []byte(data),
+		Transactions:  transactions,
 		PrevBlockHash: prevBlockHash,
 		Hash:          []byte{},
 		Nonce:         int64(0),
 	}
 
-	pow := proofofwork.NewProofOfWork(
+	proof := pow.NewProofOfWork(
 		b.Timestamp,
-		b.Data,
+		b.Transactions,
 		b.PrevBlockHash,
 		b.Nonce,
 	)
 
-	nonce, hash := pow.Run()
+	nonce, hash := proof.Run()
 	b.Hash = hash[:]
 	b.Nonce = nonce
 

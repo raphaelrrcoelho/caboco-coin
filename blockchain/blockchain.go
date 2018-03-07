@@ -5,11 +5,13 @@ import (
 	"log"
 
 	bolt "github.com/coreos/bbolt"
-	"github.com/raphaelrrcoelho/caboco-coin/block"
+	blk "github.com/raphaelrrcoelho/caboco-coin/block"
+	tx "github.com/raphaelrrcoelho/caboco-coin/transaction"
 )
 
 const dbFile = "blockchain.db"
 const blocksBucket = "blocks"
+const genesisCoinBaseData = "Papa-Chibé: O nascido no Pará"
 
 // Blockchain keeps a sequence of Blocks
 type Blockchain struct {
@@ -30,10 +32,10 @@ func (bc *Blockchain) NewIterator() *Iterator {
 
 // Next returns next block starting from the tip
 func (i *Iterator) Next() *block.Block {
-	var b *block.Block
+	var b *blk.Block
 
-	err := i.db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
+	err := i.db.View(func(dbtx *bolt.Tx) error {
+		bucket := dbtx.Bucket([]byte(blocksBucket))
 		encodedBlock := bucket.Get(i.CurrentHash)
 		b = block.DeserializeBlock(encodedBlock)
 
@@ -52,8 +54,8 @@ func (i *Iterator) Next() *block.Block {
 func (bc *Blockchain) AddBlock(data string) {
 	var lastHash []byte
 
-	err := bc.DB.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
+	err := bc.DB.View(func(dbtx *bolt.Tx) error {
+		bucket := dbtx.Bucket([]byte(blocksBucket))
 		lastHash = bucket.Get([]byte("l"))
 
 		return nil
@@ -62,10 +64,10 @@ func (bc *Blockchain) AddBlock(data string) {
 		log.Panic(err)
 	}
 
-	newBlock := block.NewBlock(data, lastHash)
+	newBlock := blk.NewBlock(data, lastHash)
 
-	err = bc.DB.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
+	err = bc.DB.Update(func(dbtx *bolt.Tx) error {
+		bucket := dbtx.Bucket([]byte(blocksBucket))
 		err = bucket.Put(newBlock.Hash, newBlock.Serialize())
 		if err != nil {
 			log.Panic(err)
@@ -83,21 +85,22 @@ func (bc *Blockchain) AddBlock(data string) {
 }
 
 // NewBlockchain creates a new Blockchain
-func NewBlockchain() *Blockchain {
+func NewBlockchain(address string) *Blockchain {
 	var tip []byte
 	db, err := bolt.Open(dbFile, 0600, nil)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(blocksBucket))
+	err = db.Update(func(dbtx *bolt.Tx) error {
+		bucket := dbtx.Bucket([]byte(blocksBucket))
 
 		if bucket == nil {
 			fmt.Println("Nenhuma blockchain encontrada. Criando uma nova.")
-			genesis := block.NewGenesisBlock()
+			cbtx := tx.NewCoinbaseTX(address, genesisCoinbaseData)
+			genesis := blk.NewGenesisBlock(cbtx)
 
-			bucket, err = tx.CreateBucket([]byte(blocksBucket))
+			bucket, err = dbtx.CreateBucket([]byte(blocksBucket))
 			if err != nil {
 				log.Panic(err)
 			}
