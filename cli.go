@@ -8,14 +8,15 @@ import (
 	"strconv"
 )
 
-type CLI struct {
-	BC *Blockchain
-}
+type CLI struct{}
 
 func (cli *CLI) printUsage() {
 	fmt.Println("Utilização:")
-	fmt.Println("  adicionabloco -dados DADOS - adiciona um bloco na blockchain")
-	fmt.Println("  imprimechain - imprime todos os blocos da blockchain")
+	fmt.Println()
+	fmt.Println(" conferesaldo -endereco ENDERECO (Confere saldo do ENDERECO)")
+	fmt.Println(" criablockchain -endereco ENDERECO (Cria blockchain e envia a recompensa do bloco genesis para ENDERECO)")
+	fmt.Println(" enviar -de DE -para PARA -montante MONTANTE (Envia MONTANTE de moedas do endereço DE para o endereço PARA)")
+	fmt.Println(" imprimechain (Imprime todos os blocos da blockchain)")
 	fmt.Println()
 }
 
@@ -29,14 +30,30 @@ func (cli *CLI) validateArgs() {
 func (cli *CLI) Run() {
 	cli.validateArgs()
 
-	addBlockCmd := flag.NewFlagSet("addBlock", flag.ExitOnError)
+	checkBalanceCmd := flag.NewFlagSet("checkBalance", flag.ExitOnError)
+	createBlockchainCmd := flag.NewFlagSet("createBlockchain", flag.ExitOnError)
+	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printChain", flag.ExitOnError)
 
-	addBlockData := addBlockCmd.String("data", "", "Block data")
+	checkBalanceData := checkBalanceCmd.String("endereco", "", "Endereço")
+	createBlockchainData := createBlockchainCmd.String("endereco", "", "Endereço")
+	sendFrom := sendCmd.String("de", "", "Endereço de origem")
+	sendTo := sendCmd.String("para", "", "Endereço de destino")
+	sendAmount := sendCmd.Int("montante", 0, "Montante a enviar")
 
 	switch os.Args[1] {
-	case "adicionabloco":
-		err := addBlockCmd.Parse(os.Args[2:])
+	case "conferesaldo":
+		err := checkBalanceCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "criablockchain":
+		err := createBlockchainCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "enviar":
+		err := sendCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -50,12 +67,28 @@ func (cli *CLI) Run() {
 		os.Exit(1)
 	}
 
-	if addBlockCmd.Parsed() {
-		if *addBlockData == "" {
-			addBlockCmd.Usage()
+	if checkBalanceCmd.Parsed() {
+		if *checkBalanceData == "" {
+			checkBalanceCmd.Usage()
 			os.Exit(1)
 		}
-		cli.addBlock(*addBlockData)
+		cli.checkBalance(*checkBalanceData)
+	}
+
+	if createBlockchainCmd.Parsed() {
+		if *createBlockchainData == "" {
+			createBlockchainCmd.Usage()
+			os.Exit(1)
+		}
+		cli.createBlockchain(*createBlockchainData)
+	}
+
+	if sendCmd.Parsed() {
+		if *sendFrom == "" || *sendTo == "" || *sendAmount <= 0 {
+			sendCmd.Usage()
+			os.Exit(1)
+		}
+		cli.send(*sendFrom, *sendTo, *sendAmount)
 	}
 
 	if printChainCmd.Parsed() {
@@ -63,18 +96,32 @@ func (cli *CLI) Run() {
 	}
 }
 
-func (cli *CLI) addBlock(transactions []*Transaction) {
-	cli.BC.AddBlock(transactions)
-	fmt.Println("Bloco adicionado com sucesso.")
+func (cli *CLI) createBlockchain(address string) {
+	bc := CreateBlockchainDB(address)
+	bc.DB.Close()
+	fmt.Println("Blockchain criada com sucesso.")
+}
+
+func (cli *CLI) checkBalance(address string) {
+	bc := NewBlockchain()
+	bc.DB.Close()
+	fmt.Println("Blockchain criada com sucesso.")
+}
+
+func (cli *CLI) send(from string, to string, amount int) {
+	bc := NewBlockchain()
+	bc.DB.Close()
+	fmt.Println("Blockchain criada com sucesso.")
 }
 
 func (cli *CLI) printChain() {
-	bci := cli.BC.NewIterator()
+	//FIX ME: Remove need for create a empty blokchain
+	bc := NewBlockchain()
+	bci := bc.NewIterator()
 
 	for bci.CurrentHash != nil {
 		block := bci.Next()
 		fmt.Printf("Hash Anterior: %x\n", block.PrevBlockHash)
-		fmt.Printf("Transações: %s\n", block.Transactions)
 		fmt.Printf("Hash: %x\n", block.Hash)
 
 		pow := NewProofOfWork(block)

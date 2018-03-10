@@ -20,14 +20,6 @@ type ProofOfWork struct {
 	target *big.Int
 }
 
-// type ProofOfWork struct {
-// 	blockTimestamp    int64
-// 	blockTransactions []*Transaction
-// 	prevBlockHash     []byte
-// 	target            *big.Int
-// 	nonce             int64
-// }
-
 func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 	data := bytes.Join(
 		[][]byte{
