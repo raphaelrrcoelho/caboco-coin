@@ -98,25 +98,35 @@ func (cli *CLI) Run() {
 
 func (cli *CLI) createBlockchain(address string) {
 	bc := CreateBlockchainDB(address)
-	bc.DB.Close()
+	defer bc.DB.Close()
 	fmt.Println("Blockchain criada com sucesso.")
 }
 
 func (cli *CLI) checkBalance(address string) {
 	bc := NewBlockchain()
-	bc.DB.Close()
-	fmt.Println("Blockchain criada com sucesso.")
+	defer bc.DB.Close()
+
+	balance := 0
+	UTXOs := bc.FindUTXO(address)
+
+	for _, out := range UTXOs {
+		balance += out.Value
+	}
+
+	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
 func (cli *CLI) send(from string, to string, amount int) {
 	bc := NewBlockchain()
-	bc.DB.Close()
+	defer bc.DB.Close()
 	fmt.Println("Blockchain criada com sucesso.")
 }
 
 func (cli *CLI) printChain() {
 	//FIX ME: Remove need for create a empty blokchain
 	bc := NewBlockchain()
+	defer bc.DB.Close()
+
 	bci := bc.NewIterator()
 
 	for bci.CurrentHash != nil {

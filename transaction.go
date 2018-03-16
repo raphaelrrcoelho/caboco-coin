@@ -30,6 +30,21 @@ type TXOutput struct {
 	ScriptPubKey string
 }
 
+// IsCoinbase checks whether the transaction is coinbase
+func (tx Transaction) IsCoinbase() bool {
+	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
+}
+
+// CanUnlockOutputWith checks if input can unlock output with specific data
+func (in *TXInput) CanUnlockOutputWith(unlockingData string) bool {
+	return in.ScriptSig == unlockingData
+}
+
+// CanBeUnlockedWith checks if output can be unlocked with specific data
+func (out *TXOutput) CanBeUnlockedWith(unlockingData string) bool {
+	return out.ScriptPubKey == unlockingData
+}
+
 // SetID sets ID of a transaction
 func (tx *Transaction) SetID() {
 	var encoded bytes.Buffer
